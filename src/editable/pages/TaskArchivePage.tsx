@@ -9,6 +9,8 @@ import { taskPageMetadata } from '@/config/site.content'
 import { taskPageVoices } from '@/editable/content/task-pages.content'
 import { EditableSiteShell } from '@/editable/shell/EditableSiteShell'
 import { getTaskTheme, taskThemeStyle } from '@/editable/theme/task-themes'
+import { Ads } from '@/lib/ads'
+import { pickAdSlot, AD_SLOT_POOLS } from '@/editable/ads/ad-placement'
 
 export const revalidate = 3
 
@@ -92,6 +94,7 @@ export function TaskArchiveView({ task, posts, pagination, category, basePath }:
   const page = pagination.page || 1
   const label = taskConfig?.label || task
   const categoryLabel = category === 'all' ? 'All categories' : CATEGORY_OPTIONS.find((item) => item.slug === category)?.name || category
+  const adSlot = pickAdSlot(AD_SLOT_POOLS.archive)
 
   return (
     <EditableSiteShell>
@@ -104,7 +107,7 @@ export function TaskArchiveView({ task, posts, pagination, category, basePath }:
               <span className="h-1 w-1 rounded-full bg-[var(--tk-accent)] opacity-50" />
               <span className="text-[var(--tk-muted)]">{label}</span>
             </div>
-            <h1 className="editable-display mt-6 max-w-3xl text-balance text-[2.5rem] font-semibold leading-[1.06] tracking-[-0.03em] sm:text-5xl lg:text-6xl">
+            <h1 className="editable-display mt-6 max-w-3xl text-balance text-[2.5rem] font-extrabold uppercase leading-[1.0] tracking-[-0.02em] sm:text-5xl lg:text-6xl">
               {voice?.headline || `Browse ${label}`}
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--tk-muted)]">{voice?.description || theme.note}</p>
@@ -140,6 +143,9 @@ export function TaskArchiveView({ task, posts, pagination, category, basePath }:
         </header>
 
         <section className="mx-auto max-w-[var(--editable-container)] px-6 py-16 sm:py-20 lg:px-8">
+          <div className="mb-12 flex justify-center">
+            <Ads slot={adSlot} showLabel className="w-full" />
+          </div>
           {posts.length ? (
             <div className={taskGrid[task]}>
               {posts.map((post, index) => <ArchivePostCard key={post.id || post.slug} post={post} task={task} basePath={basePath} index={index} />)}

@@ -8,6 +8,8 @@ import type { SitePost } from '@/lib/site-connector'
 import { EditableSiteShell } from '@/editable/shell/EditableSiteShell'
 import { EditableArticleComments } from '@/editable/components/EditableArticleComments'
 import { getTaskTheme, taskThemeStyle } from '@/editable/theme/task-themes'
+import { Ads } from '@/lib/ads'
+import { pickAdSlot, AD_SLOT_POOLS } from '@/editable/ads/ad-placement'
 
 export const revalidate = 3
 
@@ -114,6 +116,7 @@ const mapSrcFor = (post: SitePost) => {
 }
 
 export function TaskDetailView({ task, post, related, comments = [] }: { task: TaskKey; post: SitePost; related: SitePost[]; comments?: Array<{ id: string; name: string; comment: string; createdAt: string }> }) {
+  const adSlot = pickAdSlot(AD_SLOT_POOLS.detail)
   return (
     <EditableSiteShell>
       <main style={taskThemeStyle(task)} className="min-h-screen bg-[var(--tk-bg)] text-[var(--tk-text)]">
@@ -124,6 +127,11 @@ export function TaskDetailView({ task, post, related, comments = [] }: { task: T
         {task === 'pdf' ? <PdfDetail post={post} related={related} /> : null}
         {task === 'profile' ? <ProfileDetail post={post} related={related} /> : null}
         {task === 'article' ? <ArticleDetail post={post} related={related} comments={comments} /> : null}
+        <div className="border-t border-[var(--tk-line)]">
+          <div className="mx-auto w-full max-w-[var(--editable-container)] px-6 py-12 lg:px-8">
+            <Ads slot={adSlot} showLabel className="mx-auto w-full" />
+          </div>
+        </div>
       </main>
     </EditableSiteShell>
   )
@@ -319,25 +327,97 @@ function ImageDetail({ post, related }: { post: SitePost; related: SitePost[] })
   )
 }
 
-// ----- Bookmark: a single curated resource -----
+// ----- Bookmark: a single curated resource (no imagery, by design) -----
 function BookmarkDetail({ post, related }: { post: SitePost; related: SitePost[] }) {
   const website = getField(post, ['website', 'url', 'link'])
+  const domain = website ? website.replace(/^https?:\/\//, '').replace(/\/$/, '').replace(/^www\./, '') : ''
+  const category = categoryOf(post, 'Bookmark')
+  const lead = leadText(post)
+  const tags = Array.isArray(post.tags) ? post.tags.filter((tag) => typeof tag === 'string' && tag.trim()).slice(0, 6) : []
+
   return (
     <>
-      <article className="mx-auto max-w-3xl px-6 py-14 sm:py-20">
-        <BackLink task="sbm" />
-        <div className="mt-10 flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--tk-accent-soft)] text-[var(--tk-accent)]"><Bookmark className="h-7 w-7" /></div>
-        <div className="mt-6"><Kicker task="sbm">Saved resource</Kicker></div>
-        <h1 className="editable-display mt-4 text-4xl font-semibold leading-[1.05] tracking-[-0.03em] sm:text-5xl">{post.title}</h1>
-        {leadText(post) ? <p className="mt-6 text-lg leading-8 text-[var(--tk-muted)]">{leadText(post)}</p> : null}
-        {website ? (
-          <Link href={website} target="_blank" rel="noreferrer" className="mt-8 inline-flex items-center gap-2 rounded-full bg-[var(--tk-accent)] px-5 py-3 text-sm font-semibold text-[var(--tk-on-accent)] transition hover:opacity-90">
-            Open resource <ExternalLink className="h-4 w-4" />
-          </Link>
-        ) : null}
-        <BodyContent post={post} />
-      </article>
-      <RelatedStrip task="sbm" related={related} />
+      <header className="border-b border-[var(--tk-line)] bg-[linear-gradient(180deg,var(--tk-glow),transparent_78%)]">
+        <div className="mx-auto max-w-[var(--editable-container)] px-6 py-10 sm:py-14 lg:px-8">
+          <BackLink task="sbm" />
+          <div className="mt-7 grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-end">
+            <div className="min-w-0">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[var(--tk-line)] bg-[var(--tk-surface)] text-[var(--tk-accent)] shadow-[0_10px_24px_var(--tk-glow)]">
+                  <Bookmark className="h-5 w-5" />
+                </span>
+                <Kicker task="sbm">Saved resource</Kicker>
+              </div>
+              <h1 className="editable-display mt-5 max-w-4xl text-balance text-4xl font-extrabold leading-[1.06] tracking-[-0.025em] sm:text-5xl lg:text-[3.5rem]">{post.title}</h1>
+              {lead ? <p className="mt-5 max-w-3xl text-base leading-7 text-[var(--tk-muted)] sm:text-lg sm:leading-8">{lead}</p> : null}
+              <div className="mt-5 flex flex-wrap items-center gap-2.5">
+                {domain ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--tk-line)] bg-[var(--tk-surface)] px-3.5 py-1.5 text-xs font-semibold text-[var(--tk-text)]">
+                    <Globe2 className="h-3.5 w-3.5 text-[var(--tk-accent)]" /> {domain}
+                  </span>
+                ) : null}
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--tk-accent-soft)] px-3.5 py-1.5 text-xs font-semibold text-[var(--tk-accent)]">
+                  <Tag className="h-3.5 w-3.5" /> {category}
+                </span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </header>
+
+      <section className="mx-auto max-w-[var(--editable-container)] px-6 py-10 sm:py-12 lg:px-8">
+        <div className="grid items-start gap-7 lg:grid-cols-[minmax(0,1fr)_340px]">
+          <article className="min-w-0 rounded-[var(--tk-radius)] border border-[var(--tk-line)] bg-[var(--tk-surface)] p-6 shadow-[0_22px_60px_rgba(12,28,18,0.05)] sm:p-8 lg:p-10">
+            <div className="flex items-center gap-3 border-b border-[var(--tk-line)] pb-5">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--tk-accent-soft)] text-[var(--tk-accent)]"><FileText className="h-4 w-4" /></span>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--tk-muted)]">Overview</p>
+                <p className="mt-1 text-sm text-[var(--tk-muted)]">What this resource is about</p>
+              </div>
+            </div>
+            <BodyContent post={post} />
+            {tags.length ? (
+              <div className="mt-8 border-t border-[var(--tk-line)] pt-6">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--tk-muted)]">Tags</p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {tags.map((tag) => (
+                    <span key={tag} className="rounded-full border border-[var(--tk-line)] bg-[var(--tk-raised)] px-3.5 py-1.5 text-xs font-medium text-[var(--tk-text)]">#{tag}</span>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </article>
+
+          <aside className="space-y-5 lg:sticky lg:top-24 lg:self-start">
+            <div className="rounded-[var(--tk-radius)] border border-[var(--tk-line)] bg-[var(--tk-surface)] p-6 shadow-[0_22px_60px_rgba(12,28,18,0.06)]">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--tk-muted)]">Resource details</p>
+              <div className="mt-5 divide-y divide-[var(--tk-line)] border-y border-[var(--tk-line)] text-sm">
+                {domain ? (
+                  <div className="flex items-center justify-between gap-3 py-3.5">
+                    <span className="inline-flex items-center gap-2 text-[var(--tk-muted)]"><Globe2 className="h-4 w-4 text-[var(--tk-accent)]" /> Source</span>
+                    <span className="truncate font-semibold text-[var(--tk-text)]">{domain}</span>
+                  </div>
+                ) : null}
+                <div className="flex items-center justify-between gap-3 py-3.5">
+                  <span className="inline-flex items-center gap-2 text-[var(--tk-muted)]"><Tag className="h-4 w-4 text-[var(--tk-accent)]" /> Collection</span>
+                  <span className="truncate font-semibold text-[var(--tk-text)]">{category}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3 py-3.5">
+                  <span className="inline-flex items-center gap-2 text-[var(--tk-muted)]"><CheckCircle2 className="h-4 w-4 text-[var(--tk-accent)]" /> Curated on</span>
+                  <span className="truncate font-semibold text-[var(--tk-text)]">{SITE_CONFIG.name}</span>
+                </div>
+              </div>
+              {website ? (
+                <Link href={website} target="_blank" rel="noreferrer" className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--tk-accent)] px-5 py-3 text-sm font-bold text-[var(--tk-on-accent)] transition hover:-translate-y-0.5 hover:opacity-95">
+                  Visit resource <ArrowUpRight className="h-4 w-4" />
+                </Link>
+              ) : null}
+            </div>
+            <RelatedPanel task="sbm" post={post} related={related} />
+          </aside>
+        </div>
+      </section>
     </>
   )
 }
@@ -383,36 +463,110 @@ function PdfDetail({ post, related }: { post: SitePost; related: SitePost[] }) {
   )
 }
 
-// ----- Profile: identity-first with a sticky portrait -----
+// ----- Profile: identity-first hero with a sticky portrait -----
 function ProfileDetail({ post, related }: { post: SitePost; related: SitePost[] }) {
   const images = getImages(post)
-  const role = getField(post, ['role', 'designation', 'company', 'location'])
+  const role = getField(post, ['role', 'designation', 'company'])
+  const location = getField(post, ['location', 'city', 'address'])
   const website = getField(post, ['website', 'url'])
   const email = getField(post, ['email'])
+  const lead = leadText(post)
+  const domain = website ? website.replace(/^https?:\/\//, '').replace(/\/$/, '').replace(/^www\./, '') : ''
+  const tags = Array.isArray(post.tags) ? post.tags.filter((tag) => typeof tag === 'string' && tag.trim()).slice(0, 5) : []
+  const gallery = images.slice(1)
+  const stats = [
+    { value: String(related.length || 0), label: 'Related saves' },
+    { value: gallery.length ? String(gallery.length) : '—', label: 'Gallery items' },
+    { value: tags.length ? String(tags.length) : '—', label: 'Focus areas' },
+  ]
+
   return (
     <>
-      <section className="mx-auto max-w-[var(--editable-container)] px-6 py-14 sm:py-20 lg:px-8">
-        <BackLink task="profile" />
-        <div className="mt-8 grid gap-10 lg:grid-cols-[360px_minmax(0,1fr)]">
-          <aside className="lg:sticky lg:top-24 lg:self-start">
-            <div className="rounded-[var(--tk-radius)] border border-[var(--tk-line)] bg-[var(--tk-surface)] p-8 text-center shadow-[0_22px_60px_rgba(15,23,42,0.08)]">
-              <div className="mx-auto flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border border-[var(--tk-line)] bg-[var(--tk-raised)]">
-                {images[0] ? <img src={images[0]} alt="" className="h-full w-full object-cover" /> : <UserRound className="h-14 w-14 text-[var(--tk-muted)]" />}
+      {/* Cover hero band */}
+      <header className="relative overflow-hidden border-b border-[var(--tk-line)]">
+        <div className="h-28 w-full bg-[linear-gradient(120deg,var(--tk-accent-soft),transparent_60%)] sm:h-36" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_100%_at_50%_-10%,var(--tk-glow),transparent_70%)]" />
+        <div className="relative mx-auto -mt-16 max-w-[var(--editable-container)] px-6 pb-12 sm:-mt-20 lg:px-8">
+          <div className="mb-6"><BackLink task="profile" /></div>
+          <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:items-end sm:text-left">
+            <div className="flex h-32 w-32 shrink-0 items-center justify-center overflow-hidden rounded-[2rem] border-4 border-[var(--tk-surface)] bg-[var(--tk-raised)] shadow-[0_22px_60px_rgba(12,28,18,0.16)] sm:h-36 sm:w-36">
+              {images[0] ? <img src={images[0]} alt="" className="h-full w-full object-cover" /> : <UserRound className="h-16 w-16 text-[var(--tk-muted)]" />}
+            </div>
+            <div className="min-w-0 flex-1 pb-1">
+              <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-[var(--tk-accent)]">Curator</p>
+              <h1 className="editable-display mt-2 text-4xl font-extrabold tracking-[-0.02em] sm:text-5xl">{post.title}</h1>
+              <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-sm text-[var(--tk-muted)] sm:justify-start">
+                {role ? <span className="font-semibold text-[var(--tk-text)]">{role}</span> : null}
+                {location ? <span className="inline-flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 text-[var(--tk-accent)]" /> {location}</span> : null}
+                {domain ? <span className="inline-flex items-center gap-1.5"><Globe2 className="h-3.5 w-3.5 text-[var(--tk-accent)]" /> {domain}</span> : null}
               </div>
-              <h1 className="editable-display mt-6 text-2xl font-semibold tracking-[-0.02em]">{post.title}</h1>
-              {role ? <p className="mt-2 text-xs font-medium uppercase tracking-[0.16em] text-[var(--tk-accent)]">{role}</p> : null}
-              <DetailMeta post={post} center />
+            </div>
+            <div className="shrink-0 sm:pb-1">
               <ContactAction website={website} email={email} bare />
             </div>
-          </aside>
+          </div>
+
+          {/* Stat strip */}
+          <div className="mt-9 grid grid-cols-3 gap-3 rounded-[var(--tk-radius)] border border-[var(--tk-line)] bg-[var(--tk-surface)] p-5 shadow-[0_22px_60px_rgba(12,28,18,0.06)] sm:max-w-md">
+            {stats.map((stat) => (
+              <div key={stat.label} className="text-center">
+                <p className="editable-display text-2xl font-extrabold tracking-[-0.02em] text-[var(--tk-text)]">{stat.value}</p>
+                <p className="mt-1 text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--tk-muted)]">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </header>
+
+      <section className="mx-auto max-w-[var(--editable-container)] px-6 py-14 sm:py-16 lg:px-8">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px]">
           <article className="min-w-0">
-            <Kicker task="profile">Profile</Kicker>
+            <Kicker task="profile">About</Kicker>
+            {lead ? <p className="mt-5 text-lg leading-8 text-[var(--tk-muted)]">{lead}</p> : null}
             <BodyContent post={post} />
-            <ImageStrip images={images.slice(1)} label="Gallery" />
+            {tags.length ? (
+              <div className="mt-10 border-t border-[var(--tk-line)] pt-6">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--tk-muted)]">Focus areas</p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {tags.map((tag) => (
+                    <span key={tag} className="rounded-full border border-[var(--tk-line)] bg-[var(--tk-raised)] px-3.5 py-1.5 text-xs font-medium text-[var(--tk-text)]">#{tag}</span>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+            <ImageStrip images={gallery} label="Gallery" />
           </article>
+          <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
+            {website || email || location ? (
+              <div className="rounded-[var(--tk-radius)] border border-[var(--tk-line)] bg-[var(--tk-surface)] p-6 shadow-[0_22px_60px_rgba(12,28,18,0.06)]">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--tk-muted)]">Details</p>
+                <div className="mt-4 grid gap-3 text-sm">
+                  {location ? (
+                    <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3">
+                      <span className="inline-flex items-center gap-2 whitespace-nowrap text-[var(--tk-muted)]"><MapPin className="h-4 w-4 shrink-0 text-[var(--tk-accent)]" /> Location</span>
+                      <span className="min-w-0 break-words text-right font-semibold leading-5 text-[var(--tk-text)]">{location}</span>
+                    </div>
+                  ) : null}
+                  {domain ? (
+                    <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3">
+                      <span className="inline-flex items-center gap-2 whitespace-nowrap text-[var(--tk-muted)]"><Globe2 className="h-4 w-4 shrink-0 text-[var(--tk-accent)]" /> Website</span>
+                      <span className="min-w-0 break-all text-right font-semibold leading-5 text-[var(--tk-text)]">{domain}</span>
+                    </div>
+                  ) : null}
+                  {email ? (
+                    <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3">
+                      <span className="inline-flex items-center gap-2 whitespace-nowrap text-[var(--tk-muted)]"><Mail className="h-4 w-4 shrink-0 text-[var(--tk-accent)]" /> Email</span>
+                      <span className="min-w-0 break-all text-right font-semibold leading-5 text-[var(--tk-text)]">{email}</span>
+                    </div>
+                  ) : null}
+                </div>
+                <ContactAction website={website} email={email} bare />
+              </div>
+            ) : null}
+            <RelatedPanel task="profile" post={post} related={related} />
+          </aside>
         </div>
       </section>
-      <RelatedStrip task="profile" related={related} />
     </>
   )
 }
@@ -494,7 +648,7 @@ function BadgeLine({ label, value }: { label: string; value: string }) {
   )
 }
 
-function RelatedPanel({ task, post, related }: { task: TaskKey; post: SitePost; related: SitePost[] }) {
+function RelatedPanel({ task, related }: { task: TaskKey; post?: SitePost; related: SitePost[] }) {
   const taskConfig = getTaskConfig(task)
   return (
     <div className="space-y-6">
