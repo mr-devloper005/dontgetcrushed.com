@@ -8,29 +8,26 @@ export const globalContent = {
     baseUrl: slot4BrandConfig.baseUrl,
   },
   nav: {
-    tagline: 'Independent reading platform',
+    tagline: 'Curated bookmarks & collections',
     primaryLinks: [
-      { label: 'Articles', href: '/articles' },
-      { label: 'Visuals', href: '/image-sharing' },
-      { label: 'Listings', href: '/listings' },
+      { label: 'Bookmarks', href: '/sbm' },
+      { label: 'About', href: '/about' },
       { label: 'Contact', href: '/contact' },
     ],
     actions: {
-      primary: { label: 'Start exploring', href: '/' },
-      secondary: { label: 'Submit', href: '/contact' },
+      primary: { label: 'Browse collections', href: '/sbm' },
+      secondary: { label: 'Save a bookmark', href: '/create' },
     },
   },
   footer: {
-    tagline: 'Stories, resources, and discoverable posts',
-    description: 'A connected publishing surface for articles, visuals, listings, profiles, bookmarks, and downloadable resources.',
+    tagline: 'Curated bookmarks and collections',
+    description: 'A clean home for the links worth keeping — save resources, organize them into collections, and rediscover them in seconds.',
     columns: [
       {
         title: 'Explore',
         links: [
-          { label: 'Articles', href: '/articles' },
-          { label: 'Listings', href: '/listings' },
-          { label: 'Images', href: '/image-sharing' },
-          { label: 'PDF Library', href: '/pdf' },
+          { label: 'Bookmarks', href: '/sbm' },
+          { label: 'Search', href: '/search' },
         ],
       },
       {
@@ -41,7 +38,7 @@ export const globalContent = {
         ],
       },
     ],
-    bottomNote: 'Built for clean discovery and connected publishing.',
+    bottomNote: 'Built for clean discovery and curated collections.',
   },
   commonLabels: {
     readMore: 'Read more',

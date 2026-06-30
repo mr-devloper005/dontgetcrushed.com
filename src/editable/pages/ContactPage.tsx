@@ -9,10 +9,10 @@ import { EditableSiteShell } from '@/editable/shell/EditableSiteShell'
 
 const tone = {
   shell: 'bg-[var(--slot4-page-bg)] text-[var(--slot4-page-text)]',
-  panel: 'border border-[var(--editable-border)] bg-[var(--slot4-surface-bg)]',
-  soft: 'border border-[var(--editable-border)] bg-[var(--slot4-panel-bg)]',
+  panel: 'rounded-[2rem] border border-[var(--editable-border)] bg-[var(--slot4-surface-bg)] shadow-[0_20px_60px_rgba(12,28,18,0.06)]',
+  soft: 'rounded-2xl border border-[var(--editable-border)] bg-[var(--slot4-surface-bg)]',
   muted: 'text-[var(--slot4-muted-text)]',
-  action: 'bg-[var(--slot4-accent-fill)] text-[var(--slot4-on-accent)] hover:opacity-90',
+  action: 'bg-[var(--slot4-accent-fill)] text-[var(--slot4-on-accent)] hover:brightness-105',
 }
 
 function getLanes(kind: ReturnType<typeof getProductKind>) {
@@ -51,25 +51,29 @@ export default function ContactPage() {
 
   return (
     <EditableSiteShell className={tone.shell}>
-      <main className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+      <main className="mx-auto w-full max-w-[var(--editable-container)] px-5 py-16 sm:px-6 lg:px-8">
         <section className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--slot4-accent)]">{pagesContent.contact.eyebrow}</p>
-            <h1 className="editable-display mt-4 text-5xl font-semibold tracking-[-0.02em]">{pagesContent.contact.title}</h1>
-            <p className={`mt-5 max-w-2xl text-sm leading-8 ${tone.muted}`}>{pagesContent.contact.description}</p>
-            <div className="mt-8 space-y-4">
+            <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-[var(--slot4-accent)]">{pagesContent.contact.eyebrow}</p>
+            <h1 className="editable-display mt-4 text-4xl font-extrabold uppercase leading-[1.0] tracking-[-0.02em] sm:text-5xl">{pagesContent.contact.title}</h1>
+            <p className={`mt-5 max-w-2xl text-base leading-7 ${tone.muted}`}>{pagesContent.contact.description}</p>
+            <div className="mt-8 space-y-3">
               {lanes.map((lane) => (
-                <div key={lane.title} className={`rounded-sm p-5 ${tone.soft}`}>
-                  <lane.icon className="h-5 w-5 text-[var(--slot4-accent)]" />
-                  <h2 className="editable-display mt-3 text-xl font-semibold">{lane.title}</h2>
-                  <p className={`mt-2 text-sm leading-7 ${tone.muted}`}>{lane.body}</p>
+                <div key={lane.title} className={`group flex items-start gap-4 p-5 transition hover:border-[var(--slot4-accent)] ${tone.soft}`}>
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--slot4-accent-soft)] text-[var(--slot4-accent)] transition group-hover:scale-105">
+                    <lane.icon className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <h2 className="editable-display text-lg font-bold tracking-[-0.01em]">{lane.title}</h2>
+                    <p className={`mt-1.5 text-sm leading-7 ${tone.muted}`}>{lane.body}</p>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className={`rounded-sm p-7 ${tone.panel}`}>
-            <h2 className="editable-display text-2xl font-semibold">{pagesContent.contact.formTitle}</h2>
+          <div className={`p-7 sm:p-8 ${tone.panel}`}>
+            <h2 className="editable-display text-2xl font-extrabold tracking-[-0.02em]">{pagesContent.contact.formTitle}</h2>
             <EditableContactLeadForm />
           </div>
         </section>
